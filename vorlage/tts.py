@@ -34,6 +34,12 @@ starts = [0.0]
 for x in durs[:-1]: starts.append(round(starts[-1] + x, 2))
 DUR = round(starts[-1] + durs[-1], 2)
 json.dump({'starts': starts, 'dur': DUR, 'sentence_times': times}, open(f'{d}/timing.json', 'w'), indent=1)
+# Marker: Zeitpunkt von Schlüsselwörtern relativ zum Szenenstart (für Animationen)
+marks = {}
+for k, w in (json.load(open(f'{d}/marks_words.json')) if __import__('os').path.exists(f'{d}/marks_words.json') else []):
+    a0, _ = times[k]; i0 = txt.index(S[k]); i = txt.index(w, i0)
+    marks[f'{k}:{w}'] = round(LEAD + (st_[i] - a0), 2)
+json.dump(marks, open(f'{d}/marks.json', 'w'), ensure_ascii=False, indent=1)
 
 subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', f'{d}/voice_full.mp3', '-ac', '1', '-ar', '44100', f'{d}/voice_full.wav'], check=True)
 w = wave.open(f'{d}/voice_full.wav'); SR = w.getframerate()

@@ -11,6 +11,8 @@ sc = [{'s': st[i], 'e': st[i + 1] if i + 1 < len(st) else dur} for i in range(le
 lib = open('lib_head.html').read()
 lib = re.sub(r'const DUR=[\d.]+;', f'const DUR={dur};', lib)
 scenes = open(f'{d}/scenes.js').read()
-scenes = scenes.replace('__SC__', json.dumps(sc)).replace('__CAPS__', json.dumps(caps, ensure_ascii=False))
+import os
+marks = json.load(open(f'{d}/marks.json')) if os.path.exists(f'{d}/marks.json') else {}
+scenes = scenes.replace('__MARKS__', json.dumps(marks, ensure_ascii=False)).replace('__SC__', json.dumps(sc)).replace('__CAPS__', json.dumps(caps, ensure_ascii=False))
 open(f'reel_{d}.html', 'w').write(lib + scenes)
 print(f'reel_{d}.html gebaut, {len(sc)} Szenen, {dur}s')
