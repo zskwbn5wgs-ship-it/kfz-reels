@@ -14,5 +14,8 @@ scenes = open(f'{d}/scenes.js').read()
 import os
 marks = json.load(open(f'{d}/marks.json')) if os.path.exists(f'{d}/marks.json') else {}
 scenes = scenes.replace('__MARKS__', json.dumps(marks, ensure_ascii=False)).replace('__SC__', json.dumps(sc)).replace('__CAPS__', json.dumps(caps, ensure_ascii=False))
+words = json.load(open(f'{d}/words.json')) if os.path.exists(f'{d}/words.json') else []
+env = json.load(open(f'{d}/env.json')) if os.path.exists(f'{d}/env.json') else []
+lib = lib.replace('__WORDS__', json.dumps(words, ensure_ascii=False)).replace('__ENV__', json.dumps(env))
 open(f'reel_{d}.html', 'w').write(lib + scenes)
 print(f'reel_{d}.html gebaut, {len(sc)} Szenen, {dur}s')

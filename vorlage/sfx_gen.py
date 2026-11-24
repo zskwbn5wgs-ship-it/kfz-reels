@@ -67,7 +67,7 @@ SC=TM["starts"]
 FX={'pop':lambda:pop(800),'pophi':lambda:pop(1300),'poplo':lambda:pop(500),'whoosh':lambda:whoosh(.5),'crash':crash,
     'coin':coin,'ding':ding,'tick':tick,'scribble':scribble}
 for s in SC: add(mix,pop(700),s+0.15,0.35); add(mix,pop(950),s+0.3,0.25)
-for s in SC[1:]: add(mix,whoosh(.45),s-0.25,0.7)
+for s in SC[1:]: add(mix,whoosh(.8),s-0.42,0.6)
 for sc,off,kind,gain in EVENTS: add(mix,FX[kind](),SC[sc]+off,gain)
 
 voice=None

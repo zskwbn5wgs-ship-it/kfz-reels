@@ -28,7 +28,7 @@ function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,gg=(n>>8)&25
 function head(o,t){
   const {skin,hair,hairD,female,beard,mood='smile',talk=false}=o;
   const blink=(Math.sin(t*1.7+(female?2:0))>0.985)?0.15:1;
-  const mo=talk?(0.35+0.65*Math.abs(Math.sin(t*11))*Math.abs(Math.sin(t*4.3))):0;
+  const mo=typeof talk==='number'?Math.min(1,talk*1.15):(talk?(0.35+0.65*Math.abs(Math.sin(t*11))*Math.abs(Math.sin(t*4.3))):0);
   let s='';
   if(female) s+=`<path d="M-118,-300 C-150,-440 150,-440 118,-300 L135,-40 C90,-10 -90,-10 -135,-40Z" fill="${hairD}"/>`;
   s+=`<circle cx="-98" cy="-290" r="22" fill="${skin}"/><circle cx="98" cy="-290" r="22" fill="${skin}"/>`;
@@ -238,3 +238,29 @@ function searchCard(txt,t,s,x,y){
 }
 function pill(txt,col,w,t,s,x,y,fs=50){const k=pop(t,s,.4);if(k<=0.01)return '';return g(`translate(${x},${y}) scale(${k})`,`<rect x="${-w/2}" y="-50" width="${w}" height="100" rx="50" fill="#000" opacity=".15" transform="translate(0,6)"/><rect x="${-w/2}" y="-50" width="${w}" height="100" rx="50" fill="${col}"/><text y="${fs*.36}" text-anchor="middle" class="t" font-size="${fs}" fill="#fff">${txt}</text>`)}
 
+
+// ================= Synchronisation: Stimme, Untertitel, Übergänge =================
+const WORDS=__WORDS__, ENV=__ENV__;
+const VENV=t=>{const i=Math.floor(t*30);return ENV[i]||0};
+function chunksFor(scene){const ws=WORDS.filter(w=>w[0]===scene),out=[];let cur=[];
+  ws.forEach(w=>{const len=cur.reduce((a,x)=>a+x[1].length+1,0);
+    if(cur.length&&(len+w[1].length>24)){out.push(cur);cur=[]}
+    cur.push(w); if(/[.?!:–]$/.test(w[1])||w[1]==='–'){out.push(cur);cur=[]}});
+  if(cur.length)out.push(cur);return out}
+const _CH={};
+function wordCaption(t,SC){
+  let si=SC.findIndex(x=>t>=x.s&&t<x.e); if(si<0) si=SC.length-1;
+  const ch=_CH[si]||(_CH[si]=chunksFor(si));
+  let ci=-1; ch.forEach((c,i)=>{if(t>=c[0][2]-0.08)ci=i});
+  if(ci<0) return '';
+  const c=ch[ci], last=c[c.length-1], endT=(ci+1<ch.length)?ch[ci+1][0][2]-0.08:last[3]+0.7;
+  if(t>endT) return '';
+  const k=out(clamp((t-(c[0][2]-0.08))/.12)), fade=1-clamp((t-endT+.15)/.15);
+  const txt=c.map(w=>w[1]).join(' '), wdt=Math.max(300,txt.length*29+90);
+  const sp=c.map(w=>{const col=t>=w[2]&&t<w[3]+0.05?'#FFD23F':(t>=w[2]?'#fff':'rgba(255,255,255,.55)');return `<tspan fill="${col}">${w[1]}</tspan>`}).join(' ');
+  return g(`translate(540,${1700+(1-k)*16}) scale(${.94+.06*k})`,`<rect x="${-wdt/2}" y="-52" width="${wdt}" height="104" rx="30" fill="${DARK}" opacity=".9"/>
+    <text y="18" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="54">${sp}</text>`,k*fade);
+}
+function wipes(t,SC){let o='';SC.forEach(({s},i)=>{if(!i)return;const p=(t-(s-.38))/.76;if(p>0&&p<1){const e=io(p),x=-1900+3400*e;
+  o+=`<rect x="${x}" y="-20" width="1750" height="1960" fill="${RED}" transform="skewX(-10)"/><rect x="${x+220}" y="-20" width="1310" height="1960" fill="${DARK}" transform="skewX(-10)"/>`}});return o}
+function topOverlay(){return `<rect width="1080" height="1920" fill="url(#vig)"/><rect width="1080" height="14" fill="${RED}"/>`+g('translate(40,40)',`<rect width="372" height="60" rx="30" fill="#fff" opacity=".95"/><circle cx="30" cy="30" r="16" fill="${RED}"/><text x="58" y="41" class="t" font-size="29" font-weight="500" fill="${DARK}">KFZ-GUTACHTEN SLADEK</text>`)}

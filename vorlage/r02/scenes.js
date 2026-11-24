@@ -78,7 +78,7 @@ function render(t){
   // ---------- S3: KVA vs. Gutachten ----------
   if(vis(t,3)){const l=t-SC[3].s;let sc='';
     sc+=officeBG();
-    sc+=g('translate(540,1640) scale(.95)',body({...SLADEK,talk:l>.3,armA:[-10,-110],propA:'tablet',armB:l>2.4?[-60,-40]:[-8,8]},t));
+    sc+=g('translate(540,1640) scale(.95)',body({...SLADEK,talk:VENV(t),armA:[-10,-110],propA:'tablet',armB:l>2.4?[-60,-40]:[-8,8]},t));
     sc+=leaf(-40,1500,-30,1.2,'#2C4A38')+leaf(1120,1700,200,1.1,'#24402F');
     o+=cam(sc,l,3,.04);
     o+=title([{text:'Steht nur im'},{text:'Gutachten',hi:1,size:96}],l,.1);
@@ -89,7 +89,7 @@ function render(t){
   if(vis(t,4)){const l=t-SC[4].s;let sc='';
     sc+=nightBG(t);
     const k=out(lin(l,.1,.7));
-    sc+=g(`translate(400,${1640+(1-k)*500})`,body({...SLADEK,talk:l>.4,armA:[-6,-6],armB:[-150+Math.sin(t*9)*16,-30]},t));
+    sc+=g(`translate(400,${1640+(1-k)*500})`,body({...SLADEK,talk:VENV(t),armA:[-6,-6],armB:[-150+Math.sin(t*9)*16,-30]},t));
     sc+=fgBushes('#1D2A26');
     o+=cam(sc,l,4,.04);
     const kl=pop(l,.1,.5);
@@ -98,12 +98,9 @@ function render(t){
     o+=g(`translate(540,600) scale(${pop(l,.5,.4)*p})`,`<rect x="-400" y="-66" width="800" height="132" rx="66" fill="${RED}"/><text y="24" text-anchor="middle" class="t" font-size="66" fill="#fff">Folgen für mehr Tipps</text>`);
     o+=bubble('Wusstest du das?',l,.2,760,1000,470);
   }
-  o+=`<rect width="1080" height="1920" fill="url(#vig)"/>`;
-  o+=`<rect width="1080" height="14" fill="${RED}"/>`+g('translate(40,40)',`<rect width="372" height="60" rx="30" fill="#fff" opacity=".95"/><circle cx="30" cy="30" r="16" fill="${RED}"/><text x="58" y="41" class="t" font-size="29" font-weight="500" fill="${DARK}">KFZ-GUTACHTEN SLADEK</text>`);
-  SC.forEach((sc,i)=>{capt+=caption(CAPS[i],t,sc.s+.2,i===SC.length-1?sc.e+1:sc.e)});
-  o+=capt;
-  SC.forEach(({s},i)=>{if(!i)return;const d=t-s+.18;if(d>0&&d<.36){const x=-1300+2500*(d/.36);
-    o+=`<rect x="${x}" y="0" width="1100" height="1920" fill="${RED}" transform="skewX(-10)"/><rect x="${x+160}" y="0" width="780" height="1920" fill="${DARK}" transform="skewX(-10)"/>`}});
+  o+=topOverlay();
+  o+=wordCaption(t,SC);
+  o+=wipes(t,SC);
   document.getElementById('s').innerHTML=o;
 }
 window.render=render; window.DUR=DUR; render(0);
