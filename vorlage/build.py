@@ -1,0 +1,16 @@
+"""Baut aus Bibliothek + Szenen + Timing die Reel-Seite.
+
+Aufruf: python3 build.py r02   ->  erzeugt reel_r02.html (im Ordner vorlage/)
+"""
+import json, re, sys
+d = sys.argv[1]
+tm = json.load(open(f'{d}/timing.json'))
+caps = json.load(open(f'{d}/sentences.json'))
+st = tm['starts']; dur = tm['dur']
+sc = [{'s': st[i], 'e': st[i + 1] if i + 1 < len(st) else dur} for i in range(len(st))]
+lib = open('lib_head.html').read()
+lib = re.sub(r'const DUR=[\d.]+;', f'const DUR={dur};', lib)
+scenes = open(f'{d}/scenes.js').read()
+scenes = scenes.replace('__SC__', json.dumps(sc)).replace('__CAPS__', json.dumps(caps, ensure_ascii=False))
+open(f'reel_{d}.html', 'w').write(lib + scenes)
+print(f'reel_{d}.html gebaut, {len(sc)} Szenen, {dur}s')
