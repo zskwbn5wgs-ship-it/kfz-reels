@@ -1,0 +1,351 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts_local.css">
+<style>
+  html,body{margin:0;padding:0;background:#000;}
+  svg{display:block}
+  .t{font-family:'Oswald';font-weight:700;text-transform:uppercase}
+  .c{font-family:'Nunito';font-weight:800}
+  .n{font-family:'Nunito';font-weight:700}
+</style></head>
+<body>
+<svg id="s" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+// ================= Marke & Helfer =================
+const RED='#E30613', DARK='#26282B', NAVY='#1F2A44', BLUE='#2F6FD6';
+const DUR=29.04;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lin=(t,s,d)=>clamp((t-s)/d);
+const out=x=>1-Math.pow(1-x,3);
+const back=x=>{x=clamp(x);const c=1.70158;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const pop=(t,s,d=.45)=>back(lin(t,s,d));
+const io=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+function g(tr,inner,op=1){return `<g transform="${tr}" opacity="${op}">${inner}</g>`}
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,gg=(n>>8)&255,b=n&255;
+  const m=v=>Math.round(clamp(f<1?v*f:v+(255-v)*(f-1),0,255));return '#'+[m(r),m(gg),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+
+// ================= Figuren (Ganzkörper) =================
+function head(o,t){
+  const {skin,hair,hairD,female,beard,mood='smile',talk=false}=o;
+  const blink=(Math.sin(t*1.7+(female?2:0))>0.985)?0.15:1;
+  const mo=talk?(0.35+0.65*Math.abs(Math.sin(t*11))*Math.abs(Math.sin(t*4.3))):0;
+  let s='';
+  if(female) s+=`<path d="M-118,-300 C-150,-440 150,-440 118,-300 L135,-40 C90,-10 -90,-10 -135,-40Z" fill="${hairD}"/>`;
+  s+=`<circle cx="-98" cy="-290" r="22" fill="${skin}"/><circle cx="98" cy="-290" r="22" fill="${skin}"/>`;
+  s+=`<ellipse cx="0" cy="-295" rx="100" ry="108" fill="${skin}"/>`;
+  s+=`<path d="M40,-395 C95,-370 110,-300 95,-250 C80,-200 40,-190 20,-188 C70,-230 80,-320 40,-395Z" fill="${shade(skin,.9)}"/>`;
+  if(beard) s+=`<path d="M-98,-290 C-100,-200 -50,-182 0,-182 C50,-182 100,-200 98,-290 C88,-235 60,-232 30,-238 C10,-246 -10,-246 -30,-238 C-60,-232 -88,-235 -98,-290Z" fill="${hairD}" opacity=".92"/>`;
+  if(female){
+    s+=`<path d="M-112,-280 C-130,-400 -50,-425 10,-418 C90,-410 130,-370 112,-280 C100,-330 70,-350 30,-352 C0,-330 -50,-325 -80,-330 C-95,-320 -105,-300 -112,-280Z" fill="${hair}"/>`;
+    s+=`<path d="M-112,-290 C-122,-200 -120,-120 -134,-40 L-100,-60 C-100,-150 -98,-230 -96,-290Z M112,-290 C122,-200 120,-120 134,-40 L100,-60 C100,-150 98,-230 96,-290Z" fill="${hair}"/>`;
+    s+=`<path d="M-60,-395 C-20,-412 30,-410 60,-392" stroke="#fff" stroke-opacity=".25" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+  } else {
+    // kurze Seiten (Fade)
+    s+=`<path d="M-101,-290 C-104,-330 -96,-360 -80,-375 L-72,-340 C-84,-330 -92,-312 -94,-290Z" fill="${hairD}" opacity=".75"/>`;
+    s+=`<path d="M101,-290 C104,-330 96,-360 80,-375 L72,-340 C84,-330 92,-312 94,-290Z" fill="${hairD}" opacity=".75"/>`;
+    // Oberkopf
+    s+=`<path d="M-86,-348 C-92,-392 -50,-414 0,-416 C50,-414 92,-392 86,-348 C70,-362 40,-368 0,-368 C-40,-368 -70,-362 -86,-348Z" fill="${hair}"/>`;
+    // Tolle vorne, nach oben gestylt
+    s+=`<path d="M-80,-356 C-92,-404 -62,-444 -12,-450 C30,-455 72,-444 90,-416 C96,-400 92,-382 84,-364 C74,-382 60,-392 40,-394 C10,-398 -30,-392 -50,-380 C-62,-374 -72,-366 -78,-356Z" fill="${hair}"/>`;
+    s+=`<path d="M-50,-386 C-56,-412 -36,-432 -4,-438" stroke="${hairD}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".55"/>`;
+    s+=`<path d="M-10,-394 C-12,-420 10,-436 44,-440" stroke="${hairD}" stroke-width="7" fill="none" stroke-linecap="round" opacity=".55"/>`;
+    s+=`<path d="M30,-394 C36,-414 58,-426 78,-420" stroke="${hairD}" stroke-width="6" fill="none" stroke-linecap="round" opacity=".5"/>`;
+    s+=`<path d="M-62,-412 C-48,-434 -20,-444 10,-444" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" opacity=".3"/>`;
+  }
+  const brow=mood==='worry'?'M-58,-335 L-20,-347 M20,-347 L58,-335':mood==='wow'?'M-58,-355 Q-38,-365 -18,-355 M18,-355 Q38,-365 58,-355':'M-58,-340 Q-38,-350 -18,-340 M18,-340 Q38,-350 58,-340';
+  s+=`<path d="${brow}" stroke="${shade(hairD,.7)}" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+  [-38,38].forEach(x=>s+=g(`translate(${x},-300) scale(1,${blink})`,`<ellipse rx="11" ry="14" fill="${DARK}"/><circle cx="4" cy="-5" r="4" fill="#fff"/>`));
+  s+=`<path d="M0,-290 Q-10,-262 4,-258" stroke="${shade(skin,.75)}" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  s+=`<circle cx="-62" cy="-255" r="14" fill="#ff8f8f" opacity=".3"/><circle cx="62" cy="-255" r="14" fill="#ff8f8f" opacity=".3"/>`;
+  if(mood==='worry') s+=`<path d="M-26,-222 Q0,-236 26,-222" stroke="${DARK}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+  else if(mood==='wow') s+=`<ellipse cx="0" cy="-222" rx="16" ry="20" fill="#7a2a2a"/>`;
+  else s+=`<path d="M-34,-236 Q0,${-236+(12+28*mo)} 34,-236 Q0,-222 -34,-236Z" fill="#8c2f2f" stroke="#8c2f2f" stroke-width="6" stroke-linejoin="round"/>`;
+  return s;
+}
+function prop(kind){
+  if(kind==='phone') return `<rect x="-18" y="-30" width="36" height="62" rx="7" fill="${DARK}"/><rect x="-13" y="-24" width="26" height="48" rx="3" fill="#8FC7F0"/>`;
+  if(kind==='tablet') return `<rect x="-62" y="-80" width="124" height="160" rx="12" fill="${DARK}"/><rect x="-54" y="-72" width="108" height="144" rx="5" fill="#fff"/>
+     <rect x="-44" y="-60" width="60" height="10" rx="5" fill="${RED}"/><rect x="-44" y="-40" width="88" height="8" rx="4" fill="#CBD2DA"/><rect x="-44" y="-26" width="70" height="8" rx="4" fill="#CBD2DA"/>
+     <rect x="-44" y="-6" width="88" height="44" rx="6" fill="#E9EEF3"/><path d="M-36,30 L-14,12 L4,22 L36,-2" stroke="${BLUE}" stroke-width="5" fill="none"/>`;
+  if(kind==='letter') return `<g transform="rotate(-8)"><rect x="-60" y="-75" width="120" height="150" rx="6" fill="#fff" stroke="#D5D9DF" stroke-width="3"/>
+     ${[ -50,-35,-20,-5].map(y=>`<rect x="-44" y="${y}" width="${y==-50?60:88}" height="7" rx="3" fill="#CBD2DA"/>`).join('')}
+     <circle cx="28" cy="42" r="20" fill="#1E9E5A"/><path d="M18,42 L26,50 L40,34" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/></g>`;
+  return '';
+}
+// Arm: Schulter (x,y), Oberarm-Winkel a1, Unterarm-Winkel a2 (0 = hängend)
+function arm(x,y,a1,a2,o,pr){
+  const sl=o.shirt;
+  return g(`translate(${x},${y}) rotate(${a1})`,
+    `<rect x="-19" y="-6" width="38" height="140" rx="19" fill="${o.longSleeve?sl:o.skin}"/>
+     <path d="M-25,-6 C-25,-24 25,-24 25,-6 L22,68 L-22,68Z" fill="${sl}"/><rect x="-23" y="60" width="46" height="10" rx="4" fill="${o.female?shade(sl,.8):BLUE}"/>`+
+    g(`translate(0,128) rotate(${a2})`,
+      `<rect x="-17" y="-8" width="34" height="122" rx="17" fill="${o.longSleeve?sl:o.skin}"/>
+       ${o.longSleeve?`<rect x="-15" y="96" width="30" height="16" rx="6" fill="${o.skin}"/>`:''}
+       <circle cx="0" cy="122" r="21" fill="${o.skin}"/>`+ (pr?g('translate(0,128)',prop(pr)):'')));
+}
+function body(o,t){
+  const {shirt,pants,shoes,female}=o;
+  const walk=o.walk||0, ph=Math.sin(t*9)*22*walk;
+  const br=Math.sin(t*2.4+(female?1:0))*2;
+  const aA=o.armA||[6,-6], aB=o.armB||[-6,6];
+  let s=`<ellipse cx="0" cy="6" rx="120" ry="16" fill="#000" opacity=".16"/>`;
+  // Beine
+  [[-34,ph,pants],[34,-ph,shade(pants,.86)]].forEach(([x,a,c])=>{
+    s+=g(`translate(${x},-310) rotate(${a})`,`<rect x="-28" y="0" width="56" height="290" rx="22" fill="${c}"/>
+      <path d="M-30,282 C-30,262 10,258 34,268 C52,276 56,300 40,304 L-26,304 C-34,304 -34,292 -30,282Z" fill="${shoes}"/>
+      <rect x="-28" y="296" width="70" height="8" rx="4" fill="#fff" opacity=".85"/>`);
+  });
+  // Hüfte (an Beine angepasst)
+  s+=`<path d="M-74,-334 L74,-334 L64,-268 L-64,-268Z" fill="${pants}"/><path d="M0,-300 L0,-268" stroke="${shade(pants,.8)}" stroke-width="4"/>`;
+  let up='';
+  const gid='sh'+shirt.slice(1);
+  up+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${shade(shirt,1.08)}"/><stop offset=".55" stop-color="${shirt}"/><stop offset="1" stop-color="${shade(shirt,.78)}"/></linearGradient></defs>`;
+  up+=`<rect x="-20" y="-566" width="40" height="46" rx="12" fill="${o.skin}"/><rect x="-20" y="-540" width="40" height="12" fill="#000" opacity=".08"/>`;
+  up+=`<path d="M-60,-536 C-92,-534 -114,-518 -112,-488 L-100,-430 C-94,-380 -90,-340 -86,-306 C-40,-298 40,-298 86,-306 C90,-340 94,-380 100,-430 L112,-488 C114,-518 92,-534 60,-536Z" fill="url(#${gid})"/>`;
+  up+=`<path d="M-86,-312 C-40,-304 40,-304 86,-312" stroke="${shade(shirt,.72)}" stroke-width="5" fill="none"/>`;
+  up+=`<path d="M-62,-384 Q-44,-374 -24,-382 M32,-364 Q50,-354 68,-364" stroke="${shade(shirt,.78)}" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  if(!female){
+    up+=`<path d="M-9,-530 L9,-530 L9,-462 L-9,-462Z" fill="${shade(shirt,.82)}"/><circle cx="0" cy="-506" r="3.5" fill="#cfd6e2"/><circle cx="0" cy="-482" r="3.5" fill="#cfd6e2"/>`;
+    up+=`<path d="M-2,-530 L-42,-548 L-52,-522 L-14,-500Z" fill="${shade(shirt,1.18)}"/><path d="M2,-530 L42,-548 L52,-522 L14,-500Z" fill="${shade(shirt,1.06)}"/>`;
+    up+=`<text x="52" y="-456" font-size="20" text-anchor="middle" class="t" fill="#fff" letter-spacing="1.5">TÜV NORD</text>`;
+  } else {
+    up+=`<path d="M-34,-536 Q0,-470 34,-536Z" fill="${o.skin}"/><path d="M-34,-536 Q0,-470 34,-536" stroke="${shade(shirt,.8)}" stroke-width="5" fill="none"/>`;
+  }
+  // Schulterkappen verdecken den Armansatz
+  up+=`<circle cx="-88" cy="-508" r="27" fill="${shade(shirt,1.06)}"/><circle cx="88" cy="-508" r="27" fill="${shade(shirt,.8)}"/>`;
+  if(!female) up+=`<path d="M-112,-500 C-86,-528 -56,-534 -36,-536" stroke="${BLUE}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M112,-500 C86,-528 56,-534 36,-536" stroke="${BLUE}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  up+=g(`translate(${o.look||0},-612) rotate(${o.tilt||0}) scale(.62) translate(0,295)`, head(o,t));
+  up+=arm(-90,-515,aA[0],aA[1],o,o.propA);
+  up+=arm(90,-515,aB[0],aB[1],o,o.propB);
+  s+=g(`translate(0,${br})`,up);
+  return s;
+}
+const SLADEK={skin:'#F2C9A5',hair:'#D8A548',hairD:'#B5852E',shirt:NAVY,pants:'#3B4250',shoes:'#22252A',beard:true};
+const KUNDIN={female:true,skin:'#F5D0B0',hair:'#6B3E26',hairD:'#4E2C1A',shirt:'#2BA6A0',pants:'#4A6FA5',shoes:'#F2F2F2'};
+
+// ================= Fahrzeuge & Objekte =================
+function car(color,dent=0,smoke=0){
+  const d=shade(color,.78), hl=shade(color,1.25);
+  return `<ellipse cx="0" cy="58" rx="270" ry="18" fill="#000" opacity=".2"/>
+  <path d="M-250,20 L-250,-40 C-250,-72 -220,-84 -186,-88 L-120,-94 L-66,-158 C-50,-174 -28,-180 0,-180 L96,-180 C122,-180 140,-170 156,-148 L198,-94 L230,-86 C250,-80 258,-62 258,-40 L258,20 Z" fill="${color}"/>
+  <path d="M-250,-10 L258,-10 L258,20 L-250,20Z" fill="${d}"/>
+  <path d="M-240,-60 L248,-60" stroke="${hl}" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+  <path d="M-98,-98 L-52,-150 C-44,-160 -32,-162 -20,-162 L16,-162 L16,-98Z" fill="#CFE6F7"/>
+  <path d="M36,-98 L36,-162 L90,-162 C106,-162 118,-155 126,-144 L162,-98Z" fill="#CFE6F7"/>
+  <path d="M-60,-150 L-30,-150 L-70,-104 L-90,-104Z" fill="#fff" opacity=".5"/>
+  <line x1="26" y1="-96" x2="26" y2="-10" stroke="${d}" stroke-width="5"/>
+  <rect x="-30" y="-74" width="34" height="8" rx="4" fill="${d}"/><rect x="60" y="-74" width="34" height="8" rx="4" fill="${d}"/>
+  <rect x="216" y="-76" width="38" height="20" rx="8" fill="#FFE38A"/>
+  <rect x="-252" y="-76" width="24" height="20" rx="6" fill="${RED}"/>
+  ${[-148,150].map(x=>`<path d="M${x-68},-10 A68,68 0 0 1 ${x+68},-10Z" fill="${shade(color,.6)}"/><circle cx="${x}" cy="18" r="52" fill="#2A2D31"/><circle cx="${x}" cy="18" r="24" fill="#C4C9CF"/><circle cx="${x}" cy="18" r="8" fill="#8A9096"/>`).join('')}
+  ${dent?`<g opacity="${dent}"><path d="M230,-86 L206,-60 L234,-42 L210,-18 L258,-6 L258,-82Z" fill="${shade(color,.55)}"/>
+      <path d="M230,-86 L206,-60 L234,-42 L210,-18" stroke="#1d1d1d" stroke-width="5" fill="none" stroke-linejoin="round"/>
+      <rect x="216" y="-76" width="38" height="20" rx="8" fill="#9aa"/></g>`:''}
+  ${smoke?[0,1,2].map(i=>{const p=(smoke+i*.33)%1;return `<circle cx="${240+p*40}" cy="${-90-p*160}" r="${20+p*50}" fill="#C9CCD1" opacity="${.6*(1-p)}"/>`}).join(''):''}`;
+}
+function coin(){return `<circle r="34" fill="#E0A800"/><circle r="30" fill="#F4C430"/><circle r="22" fill="#FFDA5C"/><text y="11" text-anchor="middle" class="c" font-size="30" fill="#B8860B">€</text>`}
+function burst(r){let p=[];for(let i=0;i<24;i++){const a=i*Math.PI/12;const rr=i%2?r*.6:r;p.push([rr*Math.cos(a),rr*Math.sin(a)])}
+  return `<polygon points="${p.map(q=>q.join(',')).join(' ')}" fill="#FFD23F"/><polygon points="${p.map(q=>q.map(v=>v*.6).join(',')).join(' ')}" fill="#FFF3B0"/>`}
+function knot(t){let d='M0,0';for(let i=1;i<26;i++){const a=i*1.3+t*2;d+=` L${Math.cos(a)*(16+i*1.2)+Math.sin(i*2.1)*10},${Math.sin(a*1.1)*(14+i)}`}
+  return `<path d="${d}" stroke="${RED}" stroke-width="4" fill="none" stroke-linejoin="round" opacity=".85"/>`}
+function bush(x,y,s,c){return g(`translate(${x},${y}) scale(${s})`,`<circle cx="0" cy="0" r="120" fill="${c}"/><circle cx="130" cy="30" r="100" fill="${c}"/><circle cx="-120" cy="40" r="110" fill="${c}"/><circle cx="40" cy="-80" r="90" fill="${c}"/>`)}
+function leaf(x,y,rot,s,c){return g(`translate(${x},${y}) rotate(${rot}) scale(${s})`,`<path d="M0,0 C60,-120 200,-160 300,-120 C220,-60 120,10 0,0Z" fill="${c}"/>`)}
+
+// ================= Szenen-Hintergründe =================
+function defs(){return `<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ED3EE"/><stop offset=".7" stop-color="#E7F1EC"/><stop offset="1" stop-color="#FBE9CF"/></linearGradient>
+  <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#28304F"/><stop offset=".55" stop-color="#6A4C6E"/><stop offset="1" stop-color="#F0A36A"/></linearGradient>
+  <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8DB4D6"/><stop offset="1" stop-color="#5D86AE"/></linearGradient>
+  <radialGradient id="vig" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+</defs>`}
+function skyline(y,c,seed,h=1){let s='',x=-20,i=0;while(x<1100){const w=60+((seed*7+i*37)%70),hh=(120+((seed*13+i*53)%220))*h;s+=`<rect x="${x}" y="${y-hh}" width="${w}" height="${hh+4}" fill="${c}"/>`;x+=w+4;i++}return s}
+function windows(x,y,w,h,c,cols=4,rows=6){let s='';const cw=w/cols,rh=h/rows;for(let i=0;i<cols;i++)for(let j=0;j<rows;j++)s+=`<rect x="${x+i*cw+cw*.2}" y="${y+j*rh+rh*.2}" width="${cw*.6}" height="${rh*.55}" rx="3" fill="${c}"/>`;return s}
+function tree(x,y,s=1,c='#7FAE73'){return g(`translate(${x},${y}) scale(${s})`,`<rect x="-12" y="-120" width="24" height="120" fill="#8B6B4E"/><circle cy="-190" r="95" fill="${c}"/><circle cx="-60" cy="-140" r="62" fill="${c}"/><circle cx="62" cy="-135" r="66" fill="${shade(c,.88)}"/><circle cx="-25" cy="-225" r="40" fill="${shade(c,1.12)}"/>`)}
+function streetBG(t,mv=0){
+  let s=`<rect width="1080" height="1920" fill="url(#sky)"/><circle cx="820" cy="560" r="90" fill="#FFF4D6" opacity=".9"/>`;
+  s+=g(`translate(${-mv*.2},0)`,skyline(1140,'#C7D7E3',3,.9));
+  s+=g(`translate(${-mv*.4},0)`,skyline(1180,'#A8BFD1',5,.7));
+  s+=g(`translate(${-mv*.6},0)`,`<rect x="-40" y="880" width="300" height="320" fill="#E9DCC6"/><polygon points="-60,880 110,760 280,880" fill="#C9775B"/>${windows(-20,920,260,240,'#FDF6E7',3,3)}
+     <rect x="760" y="840" width="360" height="360" fill="#EED9C0"/><polygon points="740,840 940,700 1140,840" fill="#B9694F"/>${windows(780,880,300,280,'#FDF6E7',3,3)}`+tree(380,1210,1.05)+tree(620,1215,.85,'#93BC86'));
+  s+=`<rect y="1200" width="1080" height="80" fill="#D8D1C6"/><rect y="1276" width="1080" height="14" fill="#B9B2A7"/>`;
+  s+=`<rect y="1290" width="1080" height="290" fill="#6A7079"/><rect y="1290" width="1080" height="18" fill="#5B6068"/>`;
+  s+=[...Array(8).keys()].map(i=>`<rect x="${((i*230-mv*1.2)%1840+1840)%1840-300}" y="1432" width="130" height="14" rx="7" fill="#F4F4F4" opacity=".9"/>`).join('');
+  s+=`<rect y="1580" width="1080" height="340" fill="#8DB07C"/><rect y="1580" width="1080" height="20" fill="#7AA06A"/>`;
+  return s;
+}
+function officeBG(){
+  let s=`<rect width="1080" height="1920" fill="#EFE6D8"/>`;
+  s+=`<rect x="560" y="560" width="430" height="560" rx="10" fill="#fff"/><rect x="580" y="580" width="390" height="520" fill="url(#sky)"/>`;
+  s+=g('translate(580,0)',`<clipPath id="wc"><rect x="0" y="580" width="390" height="520"/></clipPath><g clip-path="url(#wc)">${skyline(1100,'#B9CBD8',2,.8)}${skyline(1100,'#9FB5C7',9,.5)}</g>`);
+  s+=`<rect x="770" y="580" width="12" height="520" fill="#fff"/><rect x="580" y="830" width="390" height="12" fill="#fff"/>`;
+  s+=`<rect x="80" y="620" width="380" height="18" rx="6" fill="#C9A27A"/>`+['#E30613','#2F6FD6','#E9B44C','#26282B','#7FAE73','#2F6FD6'].map((c,i)=>`<rect x="${100+i*52}" y="${500+(i%2)*14}" width="40" height="${120-(i%2)*14}" rx="5" fill="${c}"/>`).join('');
+  s+=`<rect x="80" y="760" width="380" height="18" rx="6" fill="#C9A27A"/><rect x="110" y="680" width="120" height="80" rx="6" fill="#fff" stroke="#D5C6B3" stroke-width="6"/><circle cx="170" cy="712" r="16" fill="${RED}"/>`;
+  s+=`<rect y="1300" width="1080" height="620" fill="#C9A27A"/>`+[...Array(8).keys()].map(i=>`<rect x="${i*140}" y="1300" width="4" height="620" fill="#B38C66"/>`).join('');
+  s+=`<rect y="1290" width="1080" height="22" fill="#B88F69"/>`;
+  return s;
+}
+function workshopBG(t){
+  let s=`<rect width="1080" height="1920" fill="#D7DEE5"/>`;
+  s+=`<rect x="60" y="560" width="960" height="720" rx="8" fill="#B9C3CD"/>`+[...Array(9).keys()].map(i=>`<rect x="70" y="${570+i*78}" width="940" height="66" rx="4" fill="${i%2?'#C5CED7':'#BFC9D2'}"/>`).join('');
+  s+=`<rect x="0" y="540" width="1080" height="24" fill="#F2C230"/>`+[...Array(14).keys()].map(i=>`<polygon points="${i*80},540 ${i*80+40},540 ${i*80+20},564 ${i*80-20},564" fill="#26282B"/>`).join('');
+  s+=`<polygon points="380,560 700,560 940,1500 140,1500" fill="url(#cone)" opacity="${.7+.1*Math.sin(t*3)}"/><rect x="480" y="540" width="120" height="30" rx="10" fill="#4A5059"/>`;
+  s+=`<rect y="1280" width="1080" height="640" fill="#A9B2BC"/><rect y="1280" width="1080" height="20" fill="#959FAA"/><rect x="0" y="1560" width="1080" height="16" fill="#F2C230" opacity=".9"/>`;
+  return s;
+}
+function nightBG(t){
+  let s=`<rect width="1080" height="1920" fill="url(#dusk)"/>`;
+  for(let i=0;i<40;i++){const x=(i*277)%1080,y=(i*131)%600+80;s+=`<circle cx="${x}" cy="${y}" r="${1.5+(i%3)}" fill="#fff" opacity="${.4+.4*Math.abs(Math.sin(t*2+i))}"/>`}
+  s+=skyline(1050,'#3E3A5C',4,1.1)+skyline(1100,'#4E4468',8,.8);
+  s+=`<rect x="120" y="760" width="840" height="560" fill="#5A4A5E"/><rect x="120" y="740" width="840" height="30" fill="#463A4B"/>`;
+  s+=`<rect x="250" y="800" width="580" height="90" rx="10" fill="${RED}"/><rect x="250" y="800" width="580" height="90" rx="10" fill="none" stroke="#FF6A6A" stroke-width="4" opacity="${.6+.4*Math.sin(t*6)}"/>
+      <text x="540" y="862" text-anchor="middle" class="t" font-size="48" fill="#fff">KFZ-GUTACHTEN SLADEK</text>`;
+  s+=`<rect x="180" y="940" width="300" height="300" fill="#F7C873" opacity=".85"/><rect x="600" y="940" width="300" height="300" fill="#F7C873" opacity=".85"/>`+windows(180,940,300,300,'#FFE3A6',3,3)+windows(600,940,300,300,'#FFE3A6',3,3);
+  s+=`<rect y="1300" width="1080" height="620" fill="#3B3447"/><rect y="1300" width="1080" height="20" fill="#2E2838"/>`;
+  s+=`<ellipse cx="540" cy="1320" rx="520" ry="60" fill="#F7C873" opacity=".12"/>`;
+  return s;
+}
+
+// ================= Typografie =================
+function title(lines,t,s,y0=230){
+  const k=out(lin(t,s,.4)); if(k<=0) return '';
+  let h=lines.reduce((a,l)=>a+(l.size||96)*1.22,0)+50, o='';
+  o+=g(`translate(540,${y0+h/2-40+(1-k)*-40})`,`<rect x="-470" y="${-h/2+8}" width="940" height="${h}" rx="34" fill="#000" opacity=".12"/><rect x="-470" y="${-h/2}" width="940" height="${h}" rx="34" fill="#fff"/>`,k);
+  let y=y0+ (lines[0].size||96)*0.55;
+  lines.forEach((ln,i)=>{const kk=pop(t,s+.1+i*.12,.5),fs=ln.size||96;
+    if(ln.hi){const w=ln.text.length*fs*.48+50;
+      o+=g(`translate(540,${y}) scale(${kk})`,`<rect x="${-w/2}" y="${-fs*.84}" width="${w}" height="${fs*1.1}" fill="${RED}" transform="skewX(-6)"/><text text-anchor="middle" class="t" font-size="${fs}" fill="#fff">${ln.text}</text>`,clamp(kk*2));}
+    else o+=g(`translate(540,${y}) scale(${kk})`,`<text text-anchor="middle" class="t" font-size="${fs}" fill="${DARK}">${ln.text}</text>`,clamp(kk*2));
+    y+=fs*1.22;});
+  return o;
+}
+function wrap(s,n){const w=s.split(' ');let L=[],c='';w.forEach(x=>{if((c+' '+x).trim().length>n){L.push(c.trim());c=x}else c+=' '+x});L.push(c.trim());return L}
+function caption(text,t,s,e){
+  const k=out(lin(t,s,.25))*(1-lin(t,e-.2,.2)); if(k<=0) return '';
+  const lines=wrap(text,30),h=lines.length*60+46;
+  return g(`translate(540,${1700+(1-k)*30})`,`<rect x="-470" y="${-h/2}" width="940" height="${h}" rx="26" fill="${DARK}" opacity=".9"/>
+    ${lines.map((l,i)=>`<text text-anchor="middle" class="c" font-size="44" fill="#fff" y="${-h/2+66+i*60}">${l}</text>`).join('')}`,k);
+}
+function searchCard(txt,t,s,x,y){
+  const k=pop(t,s,.45); if(k<=0.01) return '';
+  const n=Math.floor(clamp((t-s-.3)/1.4)*txt.length), cur=(Math.floor(t*3)%2)?'|':'';
+  return g(`translate(${x},${y}) scale(${k})`,`<rect x="-440" y="-80" width="880" height="160" rx="36" fill="#F5B53F"/>
+    <rect x="-410" y="-50" width="820" height="100" rx="50" fill="#fff"/><circle cx="-358" cy="-6" r="20" fill="none" stroke="#E0A022" stroke-width="7"/><line x1="-344" y1="8" x2="-330" y2="22" stroke="#E0A022" stroke-width="7" stroke-linecap="round"/>
+    <text x="-300" y="18" class="n" font-size="52" fill="${DARK}">${txt.slice(0,n)}${cur}</text>
+    <circle cx="80" cy="112" r="20" fill="#F5B53F"/><circle cx="110" cy="152" r="12" fill="#F5B53F"/>`);
+}
+function pill(txt,col,w,t,s,x,y,fs=50){const k=pop(t,s,.4);if(k<=0.01)return '';return g(`translate(${x},${y}) scale(${k})`,`<rect x="${-w/2}" y="-50" width="${w}" height="100" rx="50" fill="#000" opacity=".15" transform="translate(0,6)"/><rect x="${-w/2}" y="-50" width="${w}" height="100" rx="50" fill="${col}"/><text y="${fs*.36}" text-anchor="middle" class="t" font-size="${fs}" fill="#fff">${txt}</text>`)}
+
+// ================= Ablauf =================
+const SC=[{s:0,e:3.6},{s:3.6,e:7.94},{s:7.94,e:12.74},{s:12.74,e:18.12},{s:18.12,e:22.3},{s:22.3,e:29.04}];
+const vis=(t,i)=>t>=SC[i].s&&t<SC[i].e;
+function cam(inner,l,N,zoom=.06){const d=SC[N].e-SC[N].s,p=io(clamp(l/d)),z=1+zoom*p,px=(N%2?-1:1)*18*p;
+  return g(`translate(540,1150) scale(${z}) translate(${-540+px},-1150)`,inner)}
+function fgBushes(c='#2C4A38'){return bush(-60,1880,1,c)+bush(1130,1900,1.1,shade(c,.85))}
+
+function render(t){
+  let o=defs(), capt='';
+  // ---------- S1: Unfall ----------
+  if(vis(t,0)){const l=t;let sc='';
+    const hit=1.3, sl=io(clamp(l/hit)), sh=l>hit?Math.sin(l*70)*12*Math.max(0,1-(l-hit)*3):0;
+    sc+=streetBG(t,0);
+    sc+=g(`translate(${-320+(540-262+320)*sl+sh},1440) scale(.95)`,car(BLUE,l>hit?1:0,l>hit?(l-hit)*.8:0));
+    sc+=g(`translate(${1400-(1400-(540+262))*sl+sh},1440) scale(-.95,.95)`,car(RED,l>hit?1:0));
+    if(l>hit){const k=pop(l,hit,.3);sc+=g(`translate(540,1300) scale(${k}) rotate(${l*30})`,burst(170));
+      sc+=g(`translate(540,1318) scale(${k}) rotate(-6)`,`<text text-anchor="middle" class="t" font-size="70" fill="${RED}">RUMMS!</text>`);}
+    sc+=fgBushes();
+    o+=g(`translate(${sh*.5},0)`,cam(sc,l,0));
+    o+=title([{text:'Unfall gehabt?'},{text:'Nicht deine Schuld?',hi:1,size:76}],l,.15);
+    capt+=caption('Unfall gehabt – und du bist nicht schuld?',t,.3,SC[0].e);
+  }
+  // ---------- S2: Frage ----------
+  if(vis(t,1)){const l=t-SC[1].s;let sc='';
+    sc+=streetBG(t,0);
+    sc+=g('translate(300,1440) scale(.95)',car(BLUE,1,l*.7));
+    const wk=out(lin(l,0,.9));
+    sc+=g(`translate(${1250-(1250-760)*wk},1560)`,body({...KUNDIN,mood:'worry',walk:wk<1?1:0,armA:[-8,-130],propA:'phone',armB:[-10,8],look:6,tilt:4},t));
+    sc+=g(`translate(840,${830+Math.sin(t*3)*6})`,knot(t),clamp((l-1.6)*3));
+    sc+=fgBushes();
+    o+=cam(sc,l,1);
+    o+=searchCard('Wer zahlt den Gutachter?',l,.3,540,420);
+    capt+=caption('Dann fragst du dich sofort: Wer bezahlt eigentlich den Gutachter?',t,SC[1].s+.2,SC[1].e);
+  }
+  // ---------- S3: Versicherung zahlt ----------
+  if(vis(t,2)){const l=t-SC[2].s;let sc='';
+    sc+=streetBG(t,0);
+    const kb=out(lin(l,.2,.6));
+    sc+=g(`translate(0,${130+(1-kb)*500})`,`<rect x="70" y="560" width="380" height="600" fill="url(#glass)"/><rect x="70" y="540" width="380" height="30" fill="#4C6F92"/>
+       ${windows(90,600,340,540,'#B8D3EA',4,7)}<rect x="210" y="1060" width="100" height="100" fill="#3F5F80"/>
+       <rect x="40" y="480" width="440" height="70" rx="12" fill="#fff"/><text x="260" y="527" text-anchor="middle" class="t" font-size="34" fill="${DARK}">Versicherung des Gegners</text>`);
+    sc+=g(`translate(800,1560)`,body({...KUNDIN,mood:l>2.4?'smile':'wow',armA:l>2.4?[-20,-120]:[6,-6],propA:l>2.4?'letter':null,armB:[-10,8],look:-8},t));
+    for(let i=0;i<6;i++){const st=1.0+i*.25,p=clamp((l-st)/1.0);
+      if(p>0&&p<1){const x=330+(760-330)*p,y=1000-300*Math.sin(Math.PI*p)+(1120-1000)*p;sc+=g(`translate(${x},${y}) rotate(${p*360}) scale(${1-.3*p})`,coin())}}
+    sc+=fgBushes();
+    o+=cam(sc,l,2);
+    o+=title([{text:'Nicht du zahlst!'},{text:'Die Versicherung',size:72},{text:'des Unfallgegners',hi:1,size:68}],l,.1,170);
+    o+=pill('0 € für dich','#1E9E5A',420,l,2.5,800,780,52);
+    capt+=caption('Die gute Nachricht: Das zahlt die Versicherung des Unfallverursachers.',t,SC[2].s+.2,SC[2].e);
+  }
+  // ---------- S4: Freie Gutachterwahl ----------
+  if(vis(t,3)){const l=t-SC[3].s;let sc='';
+    sc+=officeBG();
+    const wk=out(lin(l,.1,.9));
+    sc+=g(`translate(${-300+(330+300)*wk},1600)`,body({...SLADEK,talk:l>.9,walk:wk<1?1:0,armA:[-10,-110],propA:'tablet',armB:l>1?[-150+Math.sin(t*9)*14,-30]:[-8,8]},t));
+    sc+=g(`translate(820,1600) scale(.92)`,body({...KUNDIN,mood:'smile',armA:[8,-4],armB:[-8,6],look:-10},t));
+    sc+=leaf(-40,1500,-30,1.2,'#2C4A38')+leaf(1120,1700,200,1.1,'#24402F');
+    o+=cam(sc,l,3);
+    o+=title([{text:'Du wählst'},{text:'deinen Gutachter',hi:1,size:84}],l,.1);
+    const kl=pop(l,1.6,.4);
+    if(kl>.01){o+=g(`translate(810,640) scale(${kl}) rotate(-5)`,`<rect x="-190" y="-80" width="380" height="160" rx="20" fill="#fff"/><path d="M-190,-70 L0,30 L190,-70" stroke="#D5D9DF" stroke-width="6" fill="none"/>
+       <rect x="-170" y="90" width="340" height="56" rx="28" fill="${DARK}"/><text y="128" text-anchor="middle" class="n" font-size="30" fill="#fff">„Nimm unseren Gutachter…“</text>`);
+      if(l>2.5){const a=out(lin(l,2.5,.25)),b=out(lin(l,2.75,.25));
+        o+=`<line x1="640" y1="540" x2="${640+340*a}" y2="${540+250*a}" stroke="${RED}" stroke-width="28" stroke-linecap="round"/>`;
+        if(b>0)o+=`<line x1="980" y1="540" x2="${980-340*b}" y2="${540+250*b}" stroke="${RED}" stroke-width="28" stroke-linecap="round"/>`;}}
+    capt+=caption('Und: Du suchst dir deinen Gutachter selbst aus – nicht die Versicherung.',t,SC[3].s+.2,SC[3].e);
+  }
+  // ---------- S5: Freie Wahl ----------
+  if(vis(t,4)){const l=t-SC[4].s;let sc='';
+    sc+=workshopBG(t);
+    sc+=g('translate(720,1480) scale(.9)',car(BLUE,1));
+    sc+=g('translate(210,1640) scale(.92)',body({...SLADEK,talk:l>.5,armA:[-6,-100],propA:'tablet',armB:[-55,-45],look:10},t));
+    o+=cam(sc,l,4,.04);
+    o+=title([{text:'Du hast die'},{text:'freie Wahl',hi:1,size:92}],l,.1);
+    const icons={
+      gut:`<circle cx="-4" cy="-4" r="17" fill="none" stroke="#fff" stroke-width="7"/><line x1="9" y1="9" x2="22" y2="22" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`,
+      werk:`<g transform="rotate(-45)"><rect x="-7" y="-6" width="14" height="38" rx="6" fill="#fff"/><circle cy="-16" r="17" fill="#fff"/><rect x="-6" y="-36" width="12" height="18" fill="${RED}"/></g>`,
+      law:`<text y="17" text-anchor="middle" class="t" font-size="50" fill="#fff">§</text>`};
+    [['Gutachter','gut'],['Werkstatt','werk'],['Rechtsanwalt','law']].forEach(([txt,ic],i)=>{
+      const k=pop(l,.6+i*.55,.45); if(k<.01) return;
+      const kc=pop(l,.85+i*.55,.35);
+      o+=g(`translate(540,${615+i*140}) scale(${k})`,`<rect x="-380" y="-54" width="760" height="116" rx="30" fill="#000" opacity=".12"/><rect x="-380" y="-60" width="760" height="116" rx="30" fill="#fff"/>
+        <circle cx="-310" cy="-2" r="42" fill="${RED}"/>${g('translate(-310,-2)',icons[ic])}
+        <text x="-245" y="18" class="t" font-size="56" fill="${DARK}">${txt}</text>
+        ${g(`translate(310,-2) scale(${kc})`,`<circle r="36" fill="#1E9E5A"/><path d="M-15,0 L-4,12 L17,-12" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`)}`);
+    });
+    capt+=caption('Genauso frei wählst du deine Werkstatt und deinen Rechtsanwalt.',t,SC[4].s+.2,SC[4].e);
+  }
+  // ---------- S6: CTA ----------
+  if(vis(t,5)){const l=t-SC[5].s;let sc='';
+    sc+=nightBG(t);
+    const k=out(lin(l,.1,.7));
+    sc+=g(`translate(540,${1640+(1-k)*500})`,body({...SLADEK,talk:l>.5,armA:[-6,-6],armB:[-150+Math.sin(t*9)*16,-30]},t));
+    sc+=fgBushes('#1D2A26');
+    o+=cam(sc,l,5,.04);
+    const kl=pop(l,.1,.5);
+    o+=g(`translate(540,330) scale(${kl})`,`<rect x="-360" y="-185" width="720" height="370" rx="30" fill="#000" stroke="#3a3a3a" stroke-width="3"/><image href="logo_hq.jpg" x="-340" y="-169" width="680" height="337" preserveAspectRatio="xMidYMid meet"/>`);
+    o+=g(`translate(540,600) scale(${pop(l,.4,.4)})`,`<text text-anchor="middle" class="t" font-size="52" fill="#fff">Kronach &amp; Umgebung</text>`);
+    const p=1+.04*Math.sin(l*7);
+    o+=g(`translate(540,720) scale(${pop(l,.7,.4)*p})`,`<rect x="-400" y="-66" width="800" height="132" rx="66" fill="${RED}"/><text y="24" text-anchor="middle" class="t" font-size="66" fill="#fff">Folgen für mehr Tipps</text>`);
+    capt+=caption('Mehr Wissen rund ums Auto? Folge uns – Infos und Kontakt im Profil.',t,SC[5].s+.2,SC[5].e+1);
+  }
+  o+=`<rect width="1080" height="1920" fill="url(#vig)"/>`;
+  // Markenbadge + rote Linie
+  o+=`<rect width="1080" height="14" fill="${RED}"/>`+g('translate(40,40)',`<rect width="372" height="60" rx="30" fill="#fff" opacity=".95"/><circle cx="30" cy="30" r="16" fill="${RED}"/><text x="58" y="41" class="t" font-size="29" font-weight="500" fill="${DARK}">KFZ-GUTACHTEN SLADEK</text>`);
+  o+=capt;
+  // Szenenwechsel
+  SC.forEach(({s},i)=>{if(!i)return;const d=t-s+.18;if(d>0&&d<.36){const x=-1300+2500*(d/.36);
+    o+=`<rect x="${x}" y="0" width="1100" height="1920" fill="${RED}" transform="skewX(-10)"/><rect x="${x+160}" y="0" width="780" height="1920" fill="${DARK}" transform="skewX(-10)"/>`}});
+  document.getElementById('s').innerHTML=o;
+}
+window.render=render; window.DUR=DUR; render(0);
+</script></body></html>
