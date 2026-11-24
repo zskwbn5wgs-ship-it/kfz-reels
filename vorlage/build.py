@@ -11,6 +11,7 @@ sc = [{'s': st[i], 'e': st[i + 1] if i + 1 < len(st) else dur} for i in range(le
 lib = open('lib_head.html').read()
 lib = re.sub(r'const DUR=[\d.]+;', f'const DUR={dur};', lib)
 scenes = open(f'{d}/scenes.js').read()
+if '__COMMON__' in scenes: scenes = scenes.replace('__COMMON__', open('common_scenes.js').read())
 import os
 marks = json.load(open(f'{d}/marks.json')) if os.path.exists(f'{d}/marks.json') else {}
 scenes = scenes.replace('__MARKS__', json.dumps(marks, ensure_ascii=False)).replace('__SC__', json.dumps(sc)).replace('__CAPS__', json.dumps(caps, ensure_ascii=False))
